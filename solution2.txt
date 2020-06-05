@@ -1,0 +1,56 @@
+#### Dockerfile ####
+
+FROM openjdk:8-jdk-alpine
+VOLUME /data
+COPY profile-api-1.0.jar app.jar
+ENTRYPOINT ["java","-jar","/app.jar"]
+
+
+
+
+#### docker-compose.yml ####
+
+version: '3.7'
+
+services:
+  application:
+    build:
+      context: profiles
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" 
+    restart: always
+    depends_on: 
+      - database
+    environment: # Pass environment variables to the service
+      SPRING_DATASOURCE_URL: jdbc:mysql://database:3306/profiles
+      SPRING_DATASOURCE_USERNAME: empuser
+      SPRING_DATASOURCE_PASSWORD: Welcome123!
+    volumes:
+      - images-vol:/data
+    networks: # Networks to join (Services on the same network can communicate with each other using their name)
+      - backend
+
+
+  database:
+    image: mysql:latest
+    ports:
+      - "3306:3306"
+    restart: always
+    environment:
+      MYSQL_DATABASE: profiles
+      MYSQL_USER: empuser
+      MYSQL_PASSWORD: Welcome123!
+      MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+    volumes:
+      - data-vol:/var/lib/mysql
+    networks:
+      - dockernetwork  
+  
+# Volumes
+volumes:
+  data-vol:
+  images-vol:
+
+networks:
+  dockernetwork:
